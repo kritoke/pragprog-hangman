@@ -18,6 +18,14 @@ defmodule TextClient.Player do
         continue_with_message(game, "Sorry, that isn't in the word")
     end
 
+    def play(game = %State{tally: %{ game_state: :already_used}}) do
+        continue_with_message(game, "You've already used thate letter")
+    end
+
+    def play(game) do
+        continue(game)
+    end
+
     def continue_with_message(game, message) do
         IO.puts(message)
         continue(game)
@@ -29,6 +37,18 @@ defmodule TextClient.Player do
         |> prompt()
         |> make_move()
         |> play()
+    end
+
+    def display(game) do
+        game
+    end
+
+    def prompt(game) do
+        game
+    end
+
+    def make_move(game) do 
+        game
     end
 
     defp exit_with_message(msg) do
