@@ -10,14 +10,26 @@ defmodule TextClient.Player do
         exit_with_message("Sorry, you lost")
     end
 
-    def play(%State{tally: %{ game_state: :good_guess}}) do
-        IO.puts("Good Guess!")
+    def play(game = %State{tally: %{ game_state: :good_guess}}) do
+        continue_with_message(game, "Good Guess!")
     end
 
-    def play(%State{tally: %{ game_state: :bad_guess}}) do
-        IO.puts("Sorry, that isn't in the word")
+    def play(game = %State{tally: %{ game_state: :bad_guess}}) do
+        continue_with_message(game, "Sorry, that isn't in the word")
     end
 
+    def continue_with_message(game, message) do
+        IO.puts(message)
+        continue(game)
+    end
+
+    def continue(game) do
+        game
+        |> display()
+        |> prompt()
+        |> make_move()
+        |> play()
+    end
 
     defp exit_with_message(msg) do
         IO.puts(msg)
