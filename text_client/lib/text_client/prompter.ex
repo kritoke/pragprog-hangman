@@ -23,7 +23,7 @@ defmodule TextClient.Prompter do
             input =~ ~r/\A[a-z]\z/ ->
                 Map.put(game, :guess, input)
             true ->
-                IO.puts "please enter a single lowercase  letter"
+                IO.puts "please enter a single lowercase letter"
                 accept_move(game)
         end
     end
