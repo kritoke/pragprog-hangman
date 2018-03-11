@@ -1,6 +1,7 @@
 defmodule Dictionary.WordList do
     def random_word(word_list) do
-        Enum.random(word_list)
+        word_list
+        |> Enum.random()
     end
     
     def word_list do
