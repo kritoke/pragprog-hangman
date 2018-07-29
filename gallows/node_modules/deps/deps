@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+
+fs = require('fs');
+
+var mode = process.argv[2];
+var pkgName = process.argv[3];
+var pkgVersion = process.argv[4];
+var isDev = process.argv[5];
+
+if (process.argv.length === 2) {
+  // If the binary is called without any arguments...
+  mode = 'show'; 
+} else if (process.argv.length < 4) {
+  // If the binary is called without enough arguments...
+  console.error("\033[31mERROR: modDep takes at least 2 arguments\033[39m");
+  console.error("\033[33mUSAGE: modDep {add/delete} {packageName} {packageVersion} {isDev}\033[39m");
+  process.exit(1);
+}
+
+
+// Check if the pkgVersion argument was supplied
+if (pkgVersion === 'dev' || pkgVersion === 'prod' || pkgVersion === 'opt' || pkgVersion === 'optional') {
+  isDev = pkgVersion;
+  pkgVersion = '*';
+} else if (!pkgVersion) {
+  pkgVersion = '*';
+}
+
+var dependencies = 'dependencies';
+// Check if the user is adding or deleting a regular dependency, or a dev dependency
+if (isDev === 'dev') {
+  dependencies = 'devDependencies';
+} else if (isDev === 'opt' || isDev === 'optional') {
+  dependencies = 'optionalDependencies';
+}
+
+fs.open('package.json', 'r+', function(err, fd) {
+  if (err) {
+    console.log("\033[31mERROR: package.json not found.\033[39m");
+    process.exit(1);
+  }
+  buf = new Buffer(2056);
+  var read =  fs.readSync(fd, buf, 0, 2056, 0);
+  var jsonString = buf.toString('utf8', 0, read);
+  var jsonObject = JSON.parse(jsonString);
+  if (mode === 'add' || mode === 'a') {
+    jsonObject[dependencies][pkgName] = pkgVersion;
+  }
+  else if (mode === 'remove' || mode === 'r' || mode === 'rm' || mode === 'rem') {
+    delete jsonObject[dependencies][pkgName];
+  }
+  else if (mode !== 'show')  {
+    console.error("\033[31mERROR: " + mode +  " is not an valid mode. Please use 'add' or 'remove' \033[39m");
+    console.error("\033[33mUSAGE: modDep {add/delete} {packageName} {packageVersion} {isDev}\033[39m");
+    process.exit(1);
+  } 
+  if (mode !== 'show') {
+    var writeBuf = new Buffer(JSON.stringify(jsonObject, null, 4));
+    fs.truncate(fd, writeBuf.length);
+    fs.writeSync(fd, writeBuf, 0, writeBuf.length, 0);
+    console.log(writeBuf.toString());
+  } else {
+    // Binary was called with 0 arguments, all we need to do is show the current dependcies
+    // listed in the package.json
+    // Create a new object containing only the dependencies
+    var deps = {};
+    deps.dependencies = jsonObject.dependencies;
+    deps.devDependencies = jsonObject.devDependencies;
+    deps.optionalDependencies = jsonObject.optionalDependencies;
+    console.log(JSON.stringify(deps, null, 4));
+  }
+});
